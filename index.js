@@ -2,6 +2,7 @@ import fs from 'fs'
 import parser from '@babel/parser'
 import traverse from "@babel/traverse"
 import path from 'path'
+import ejs from 'ejs'
 function creatAsset(filePath){
   // 读取文件内容
   const source = fs.readFileSync(filePath,{
@@ -21,6 +22,9 @@ function creatAsset(filePath){
       deps.push(node.source.value)
     }
   })
+  // 将import语法转换为require(babel-core)
+  
+
   return {
     filePath,
     source,
@@ -46,3 +50,14 @@ function createGraph(){
 }
 const graph = createGraph()
 console.log('graph: ', graph);
+
+// 实现打包函数
+function build(graph){
+  // 引入ejs 根据设定的模板转换代码
+  // 读取模板文件
+  const template= fs.readFileSync('./bundle.ejs',{encoding:'utf-8'})
+  const code = ejs.render(template)
+  console.log('code: ', code);
+  fs.writeFileSync('./dist/bundle.js',code)
+}
+build(graph)

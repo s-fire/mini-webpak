@@ -1,0 +1,25 @@
+
+(
+  function(map){
+    function require(filepath){
+      const module = {
+        exports:{}
+      }
+      const fn = map[filepath]
+      fn(require,module)
+      return module.exports
+    }
+    require('./example/main.js')
+  }
+)({
+  './foo.js':  function(require,module){
+    module.exports = function add(a, b) {
+        return a + b
+      }
+  },
+  './main.js':function(require,module) {
+    const add = require('./example/foo.js')
+    console.log('add: ', add);
+    console.log(add(2, 3));
+  }
+})

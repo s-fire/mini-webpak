@@ -12,14 +12,9 @@
     require('./example/main.js')
   }
 )({
-  './foo.js':  function(require,module){
-    module.exports = function add(a, b) {
-        return a + b
-      }
-  },
-  './main.js':function(require,module) {
-    const add = require('./example/foo.js')
-    console.log('add: ', add);
-    console.log(add(2, 3));
-  }
-})
+   <% graph.forEach(item=>{ %>
+     "<%- item['filePath'] %>" : function(require,module){
+       <%- item['code'] %>
+       }
+    <% }) %>
+  });

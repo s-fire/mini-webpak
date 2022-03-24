@@ -1,20 +1,20 @@
 
 (
-  function (map) {
-    function require(filepath) {
+  function(map){
+    function require(filepath){
       const module = {
-        exports: {}
+        exports:{}
       }
       const fn = map[filepath]
-      fn(require, module)
+      fn(require,module)
       return module.exports
     }
     require('./example/main.js')
   }
 )({
    <% graph.forEach(item=>{ %>
-     <%- item['id'] %> : [function(require,module){
+     "<%- item['filePath'] %>" : function(require,module){
        <%- item['code'] %>
-       },<%- JSON.stringify(item['mapping']) %> ],
+       },
     <% }) %>
   });

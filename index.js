@@ -4,6 +4,8 @@ import traverse from "@babel/traverse"
 import path from 'path'
 import ejs from 'ejs'
 import { transformFromAst } from "babel-core";
+// 每个文件的id
+let id = 0
 function creatAsset(filePath){
   // 读取文件内容
   const source = fs.readFileSync(filePath,{
@@ -31,7 +33,9 @@ function creatAsset(filePath){
   return {
     filePath,
     code,
-    deps
+    deps,
+    id:id++,
+    mapping:{}
   }
 }
 // 获取依赖关系图的函数
@@ -45,6 +49,8 @@ function createGraph(){
     asset.deps.forEach(relativePath=>{
       // 再分析各依赖文件的依赖
       const child = creatAsset(path.resolve('./example',relativePath))
+      // 生成mapping
+      asset.mapping[relativePath] = asset.id
       // 添加到依赖关系图数组里
       queue.push(child)
     })
@@ -52,6 +58,7 @@ function createGraph(){
   return queue
 }
 const graph = createGraph()
+console.log('graph: ', graph);
 
 // 实现打包函数
 function build(graph){

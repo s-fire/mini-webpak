@@ -1,19 +1,27 @@
 
 (
   function (map) {
-    function require(filepath) {
+    function require(id) {
       const module = {
         exports: {}
       }
-      const fn = map[filepath]
-      fn(require, module)
+      // 这里根据Id可以得到一数组  进行解构
+      const [fn,mapping] = map[id]
+      // 但是由Babel转换后的代码的require函数传入过来的参数是'./foo.js'字符串
+      // 所以需要进行转换,根据字符串路径找到对应的函数的Id
+      function localRequire(filePath){
+        const id = mapping[filePath]
+        return require(id)
+      }
+      // 再把这个转换函数传给代代码进行转换,babel转换后的代码会调用exports,所以也需要把exports传进去
+      fn(localRequire, module,module.exports)
       return module.exports
     }
-    require('./example/main.js')
+    require(0)
   }
 )({
    <% graph.forEach(item=>{ %>
-     <%- item['id'] %> : [function(require,module){
+     <%- item['id'] %> : [function(require,module,exports){
        <%- item['code'] %>
        },<%- JSON.stringify(item['mapping']) %> ],
     <% }) %>

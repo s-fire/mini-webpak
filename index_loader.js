@@ -5,14 +5,9 @@ import path from 'path'
 import ejs from 'ejs'
 import { transformFromAst } from "babel-core";
 import { jsonLoader } from './loaders/jsonLoader.js'
-import { ChangeOutPutPath } from './plugins/changeOutputPath.js'
-// 从tapable里面引入同步Hook
-//tapable 是一个类似于 Node.js 中的 EventEmitter的库，但更专注于自定义事件的触发和处理。
-import { SyncHook } from 'tapable'
-
 // 每个文件的id
 let id = 0
-let outputPath = `./dist/bundle.js`
+
 const webpackConfig = {
   module: {
     rules: [
@@ -21,32 +16,8 @@ const webpackConfig = {
         use: [jsonLoader]
       }
     ]
-  },
-  plugins:[new ChangeOutPutPath('./dist/gly.js')]
-}
-// 创建plugin需要的Hooks对象
-//new SyncHook()通过使用tapable注册同步事件
-const hooks = {
-  emitFile:new SyncHook(['pluginContext'])
-}
-// 初始化plugin
-function initPlugins(){
-  const plugins = webpackConfig.plugins
-  plugins.forEach(plugin=>{
-    // 调用plugin的_apply方法 把hooks传过去
-    // 再plugin的_apply方法里会把当前Hooks的emitFile事件注册,再使用插件时通过call调用
-    plugin._apply(hooks)
-  })
-  const pluginContext = {
-    ChangeOutPutPath(path){
-      console.log('path1: ', path);
-      outputPath = path
-    }
   }
-  // 调用call方法 触发所注册的同步事件，同时把context方法传过去，让plugin调用changeOutputPath方法
-  hooks.emitFile.call(pluginContext)
 }
-initPlugins()
 function creatAsset(filePath) {
   // 读取文件内容
   let source = fs.readFileSync(filePath, {
@@ -65,6 +36,7 @@ function creatAsset(filePath) {
   loaders.forEach(({ test, use }) => {
     if (test.test(filePath)) {
       if (Array.isArray(use)) {
+        console.log('use: ', use);
         // loader的执行顺序是从下往上执行的
         use.reverse().forEach(fn => {
           // 如果当前loader匹配的文件规则与当前的文件匹配
@@ -122,8 +94,8 @@ function createGraph() {
   }
   return queue
 }
-
 const graph = createGraph()
+console.log('graph: ', graph);
 
 // 实现打包函数
 function build(graph) {
@@ -131,8 +103,6 @@ function build(graph) {
   // 读取模板文件
   const template = fs.readFileSync('./bundle.ejs', { encoding: 'utf-8' })
   const code = ejs.render(template, { graph })
-  console.log('outputPath: ', outputPath);
-  fs.writeFileSync(outputPath, code)
-
+  fs.writeFileSync('./dist/bundle.js', code)
 }
 build(graph)
